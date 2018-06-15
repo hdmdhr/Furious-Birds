@@ -15,6 +15,7 @@
 		1A61083D20D355DD00A6D08D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A61083C20D355DD00A6D08D /* Assets.xcassets */; };
 		1A61084020D355DD00A6D08D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1A61083E20D355DD00A6D08D /* LaunchScreen.storyboard */; };
 		1A61084820D359E700A6D08D /* BirdTileSet.sks in Resources */ = {isa = PBXBuildFile; fileRef = 1A61084720D359E700A6D08D /* BirdTileSet.sks */; };
+		1A61085720D4574800A6D08D /* GameCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A61085620D4574800A6D08D /* GameCamera.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		1A61083F20D355DD00A6D08D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		1A61084120D355DD00A6D08D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A61084720D359E700A6D08D /* BirdTileSet.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = BirdTileSet.sks; sourceTree = "<group>"; };
+		1A61085620D4574800A6D08D /* GameCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCamera.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +62,7 @@
 		1A61082E20D355D900A6D08D /* Birds */ = {
 			isa = PBXGroup;
 			children = (
+				1A61085520D4571200A6D08D /* Custom Nodes */,
 				1A61085420D35F8B00A6D08D /* TileSets */,
 				1A61084E20D35ED800A6D08D /* UI */,
 				1A61085020D35F1300A6D08D /* Scene */,
@@ -111,6 +114,14 @@
 				1A61084720D359E700A6D08D /* BirdTileSet.sks */,
 			);
 			name = TileSets;
+			sourceTree = "<group>";
+		};
+		1A61085520D4571200A6D08D /* Custom Nodes */ = {
+			isa = PBXGroup;
+			children = (
+				1A61085620D4574800A6D08D /* GameCamera.swift */,
+			);
+			name = "Custom Nodes";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -188,6 +199,7 @@
 			files = (
 				1A61083620D355D900A6D08D /* GameScene.swift in Sources */,
 				1A61083820D355D900A6D08D /* GameViewController.swift in Sources */,
+				1A61085720D4574800A6D08D /* GameCamera.swift in Sources */,
 				1A61083020D355D900A6D08D /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
