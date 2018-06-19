@@ -28,11 +28,13 @@ class GameScene: SKScene {
     var roundState: RoundState = .ready
     
     override func didMove(to view: SKView) {
+        physicsWorld.contactDelegate = self
+        
         setupLevel()
         setupGestureRecognizer()
     }
     
-    // MARK: - Setup level(获得实际的TileMapNode变量,用于set camera constraint)
+    // MARK: - Setup level(获得实际的TileMapNode，并将其中的placeholder SpriteNode替换成真正的block)
     
     func setupLevel(){
         if let mapNode = childNode(withName: "Tile Map Node") as? SKTileMapNode {
@@ -41,6 +43,24 @@ class GameScene: SKScene {
             print(maxScale)
         }
         setupCamera()
+        
+        for child in mapNode.children {
+            if let child = child as? SKSpriteNode {
+                guard let name = child.name else { continue }
+                if ["wood", "stone", "glass"].contains(name) {
+                    guard let type = BlockType(rawValue: name) else { continue }
+                    let block = Block(type: type)
+                    block.size = child.size
+                    block.position = child.position
+                    block.zPosition = ZPosition.obstacles
+                    // TODO: - change color based on type of the block
+                    block.color = child.color
+                    block.createPhysicsBody()
+                    mapNode.addChild(block)
+                    child.removeFromParent()
+                }
+            }
+        }
         
         let rect = CGRect(x: 0, y: mapNode.tileSize.height, width: mapNode.frame.width, height: mapNode.frame.height - mapNode.tileSize.height)
         physicsBody = SKPhysicsBody(edgeLoopFrom: rect)
@@ -163,6 +183,35 @@ class GameScene: SKScene {
             gameCamera.setConstraints(with: self, frame: mapNode.frame)
             bird.removeFromParent()
             roundState = .finished
+        }
+    }
+}
+
+// MARK: - Contact Delegate Methods
+
+extension GameScene: SKPhysicsContactDelegate {
+    
+    func didBegin(_ contact: SKPhysicsContact) {
+        let mask = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
+        
+        switch mask {
+        case PhysicsCategory.bird | PhysicsCategory.block, PhysicsCategory.block | PhysicsCategory.edge:
+            if let block = contact.bodyA.node as? Block {
+                block.impact(with: contact.collisionImpulse)
+            } else if let block = contact.bodyB.node as? Block {
+                block.impact(with: contact.collisionImpulse)
+            }
+        case PhysicsCategory.block | PhysicsCategory.block:
+            if let blockA = contact.bodyA.node as? Block {
+                blockA.impact(with: contact.collisionImpulse)
+            }
+            if let blockB = contact.bodyB.node as? Block {
+                blockB.impact(with: contact.collisionImpulse)
+            }
+        case PhysicsCategory.bird | PhysicsCategory.edge:
+            bird.flying = false
+        default:
+            break
         }
     }
     
