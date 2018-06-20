@@ -15,6 +15,8 @@ enum RoundState {
 
 class GameScene: SKScene {
     
+    var sceneManagerDelegate: SceneManagerDelegate?
+    
     var mapNode = SKTileMapNode()
     let gameCamera = GameCamera()
     var panRecognizer = UIPanGestureRecognizer()
@@ -53,8 +55,7 @@ class GameScene: SKScene {
                     block.size = child.size
                     block.position = child.position
                     block.zPosition = ZPosition.obstacles
-                    // TODO: - change color based on type of the block
-                    block.color = child.color
+                    block.zRotation = child.zRotation
                     block.createPhysicsBody()
                     mapNode.addChild(block)
                     child.removeFromParent()
@@ -90,7 +91,7 @@ class GameScene: SKScene {
         case .flying:
             break
         case .finished:
-            let moveCameraBackAction = SKAction.move(to: CGPoint(x: frame.midX, y: frame.midY), duration: 2.0)
+            let moveCameraBackAction = SKAction.move(to: CGPoint(x: frame.midX, y: frame.midY), duration: 1.2)
             moveCameraBackAction.timingMode = .easeInEaseOut
             gameCamera.run(moveCameraBackAction) {
                 self.panRecognizer.isEnabled = true
@@ -118,7 +119,7 @@ class GameScene: SKScene {
             
             let impulse = CGVector(dx: anchor.position.x - bird.position.x, dy: anchor.position.y - bird.position.y)
             bird.physicsBody?.applyImpulse(impulse)
-//            bird.isUserInteractionEnabled = false
+            bird.isUserInteractionEnabled = false
             roundState = .flying
         }
     }
@@ -142,10 +143,13 @@ class GameScene: SKScene {
     func addBird(){
         if birds.isEmpty {
             print("No more birds")
+            birds = [Bird(type: .red), Bird(type: .blue), Bird(type: .yellow)]
+            addBird()
         } else {
             bird = birds.removeFirst()
             
-            bird.physicsBody = SKPhysicsBody(rectangleOf: bird.size)
+            bird.aspectScaleToSize(mapNode.tileSize, width: false, multiplier: 1.0)
+            bird.physicsBody = SKPhysicsBody(texture: bird.texture!, size: bird.size)
             bird.physicsBody?.categoryBitMask = PhysicsCategory.bird
             bird.physicsBody?.contactTestBitMask = PhysicsCategory.all
             bird.physicsBody?.collisionBitMask = PhysicsCategory.block | PhysicsCategory.edge
@@ -201,6 +205,7 @@ extension GameScene: SKPhysicsContactDelegate {
             } else if let block = contact.bodyB.node as? Block {
                 block.impact(with: contact.collisionImpulse)
             }
+            bird.flying = false
         case PhysicsCategory.block | PhysicsCategory.block:
             if let blockA = contact.bodyA.node as? Block {
                 blockA.impact(with: contact.collisionImpulse)

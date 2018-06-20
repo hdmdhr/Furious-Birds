@@ -29,7 +29,9 @@ class Block: SKSpriteNode {
             health = 50
         }
         damageThreshold = health/2
-        super.init(texture: nil, color: .clear, size: .zero)
+        
+        let texture = SKTexture(imageNamed: type.rawValue)
+        super.init(texture: texture, color: .clear, size: .zero)
     }
     
     
@@ -51,8 +53,7 @@ class Block: SKSpriteNode {
         if health < 1 {
             removeFromParent()
         } else if health <= damageThreshold {
-            // TODO: - change texture
-            color = .red
+            texture = SKTexture(imageNamed: type.rawValue + "Broken")
         }
     }
     

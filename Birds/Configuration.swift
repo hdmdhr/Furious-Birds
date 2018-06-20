@@ -11,6 +11,8 @@ import CoreGraphics
 struct ZPosition {
     static let background: CGFloat = 0
     static let obstacles: CGFloat = 1
+    static let hudBackground: CGFloat = 10
+    static let hudLabel: CGFloat = 11
 }
 
 struct PhysicsCategory {
@@ -33,5 +35,15 @@ extension CGPoint {
     
     static public func * (left: CGPoint, right: CGFloat) -> CGPoint {
         return CGPoint(x: left.x * right, y: left.y * right)
+    }
+}
+
+extension CGSize {
+    static public func / (left: CGSize, right: CGFloat) -> CGSize {
+        return CGSize(width: left.width/right, height: left.height/right)
+    }
+    
+    static public func * (left: CGSize, right: CGFloat) -> CGSize {
+        return CGSize(width: left.width * right, height: left.height * right)
     }
 }
