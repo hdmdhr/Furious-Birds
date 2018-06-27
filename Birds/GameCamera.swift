@@ -22,7 +22,7 @@ class GameCamera: SKCameraNode {
         let yRange = SKRange(lowerLimit: insetContentRect.minY, upperLimit: insetContentRect.maxY)
         let levelEdgeConstraint = SKConstraint.positionX(xRange, y: yRange)
         
-        if let node = node {  // 如果有node参数，相机跟随node：和node距离为0
+        if let node = node {  // 如果有node参数，相机跟随node：和node距离为0,并且限制在矩形中
             let zeroRange = SKRange(constantValue: 0.0)
             let positionConstraint = SKConstraint.distance(zeroRange, to: node)
             constraints = [positionConstraint, levelEdgeConstraint]

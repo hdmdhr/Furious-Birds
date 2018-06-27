@@ -10,7 +10,7 @@ import SpriteKit
 import GameplayKit
 
 enum RoundState {
-    case ready, flying, finished
+    case ready, flying, finished, animating
 }
 
 class GameScene: SKScene {
@@ -24,15 +24,26 @@ class GameScene: SKScene {
     var maxScale : CGFloat = 0
     
     var bird = Bird(type: .red)
-    var birds = [Bird(type: .red), Bird(type: .blue), Bird(type: .yellow)]
+    var birds = [Bird]()
     let anchor = SKNode()
     
-    var roundState: RoundState = .ready
+    var level: Int?
+    
+    var roundState = RoundState.finished
     
     override func didMove(to view: SKView) {
         physicsWorld.contactDelegate = self
         
+        if let level = level {
+            if let levelData = LevelData(level: level) {
+                for birdColor in levelData.birds {
+                    birds.append(Bird(type: BirdType(rawValue: birdColor)!))
+                }
+            }
+        }
+        
         setupLevel()
+        setupSlingshot()
         setupGestureRecognizer()
     }
     
@@ -66,12 +77,12 @@ class GameScene: SKScene {
         let rect = CGRect(x: 0, y: mapNode.tileSize.height, width: mapNode.frame.width, height: mapNode.frame.height - mapNode.tileSize.height)
         physicsBody = SKPhysicsBody(edgeLoopFrom: rect)
         physicsBody?.categoryBitMask = PhysicsCategory.edge
-//        physicsBody?.contactTestBitMask = PhysicsCategory.bird | PhysicsCategory.block
-//        physicsBody?.collisionBitMask = PhysicsCategory.all
+        physicsBody?.contactTestBitMask = PhysicsCategory.bird | PhysicsCategory.block
+        physicsBody?.collisionBitMask = PhysicsCategory.all
         
         anchor.position = CGPoint(x: mapNode.frame.midX/2, y: mapNode.frame.midY/2)
         addChild(anchor)
-        addBird()
+//        addBird()
     }
     
     // MARK: - User touches and moves the bird
@@ -91,20 +102,24 @@ class GameScene: SKScene {
         case .flying:
             break
         case .finished:
+            roundState = .animating
             let moveCameraBackAction = SKAction.move(to: CGPoint(x: frame.midX, y: frame.midY), duration: 1.2)
             moveCameraBackAction.timingMode = .easeInEaseOut
+
             gameCamera.run(moveCameraBackAction) {
-                self.panRecognizer.isEnabled = true
                 self.addBird()
+                self.panRecognizer.isEnabled = true
                 self.roundState = .ready
             }
+        case .animating:
+            break
         }
         
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
-            if bird.grabbed {
+            if bird.grabbed || !bird.flying {
                 let location = touch.location(in: self)
                 bird.position = location
             }
@@ -114,13 +129,15 @@ class GameScene: SKScene {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if bird.grabbed {
             gameCamera.setConstraints(with: self, frame: mapNode.frame, to: bird)
-            bird.grabbed = false
             bird.flying = true
+            bird.grabbed = false
+            roundState = .flying
+
             
             let impulse = CGVector(dx: anchor.position.x - bird.position.x, dy: anchor.position.y - bird.position.y)
-            bird.physicsBody?.applyImpulse(impulse)
-            bird.isUserInteractionEnabled = false
-            roundState = .flying
+            let impulseMultiplier: CGFloat = 3.0
+            // TODO: - change multiplier to adjust strenth according to bird type
+            bird.physicsBody?.applyImpulse(impulse * impulseMultiplier)
         }
     }
     
@@ -129,42 +146,54 @@ class GameScene: SKScene {
     // MARK: - Setup Camera
     
     func setupCamera() {
-        gameCamera.position = CGPoint(x: frame.midX, y: frame.midY)
+        gameCamera.position = CGPoint(x: frame.maxX, y: frame.midY)
         addChild(gameCamera)
         
         camera = gameCamera
-        gameCamera.xScale = maxScale  // 开始时将相机缩放至最小，显示整个场景
-        gameCamera.yScale = maxScale
+//        gameCamera.xScale = maxScale  // 开始时将相机缩放至最小，显示整个场景
+//        gameCamera.yScale = maxScale
         gameCamera.setConstraints(with: self, frame: mapNode.frame)
+    }
+    
+    // MARK: - Add Slingshot
+    
+    func setupSlingshot(){
+        let slingshot = SKSpriteNode(imageNamed: "slingshot")
+        let slingHeight = CGSize(width: 0, height: anchor.position.y - mapNode.tileSize.height)
+        slingshot.aspectScaleToSize(slingHeight, width: false, multiplier: 1.0)
+        slingshot.position = CGPoint(x: anchor.position.x, y: mapNode.tileSize.height + slingshot.size.height/2)
+        slingshot.zPosition = ZPosition.obstacles
+        addChild(slingshot)
     }
     
     // MARK: - Add bird and Constraint Bird to Anchor
     
     func addBird(){
+        guard bird.parent == nil else { return }
         if birds.isEmpty {
             print("No more birds")
-            birds = [Bird(type: .red), Bird(type: .blue), Bird(type: .yellow)]
-            addBird()
         } else {
             bird = birds.removeFirst()
             
-            bird.aspectScaleToSize(mapNode.tileSize, width: false, multiplier: 1.0)
+            bird.aspectScaleToSize(mapNode.tileSize, width: true, multiplier: 1.0)
             bird.physicsBody = SKPhysicsBody(texture: bird.texture!, size: bird.size)
             bird.physicsBody?.categoryBitMask = PhysicsCategory.bird
             bird.physicsBody?.contactTestBitMask = PhysicsCategory.all
             bird.physicsBody?.collisionBitMask = PhysicsCategory.block | PhysicsCategory.edge
             bird.physicsBody?.isDynamic = false
             bird.position = anchor.position
-            
+            bird.zPosition = ZPosition.bird
+
             addChild(bird)
             constraintToAnchor()
         }
     }
     
     func constraintToAnchor() {
-            let slingRange = SKRange(lowerLimit: 0.0, upperLimit: bird.size.width * 4)
+            let slingRange = SKRange(lowerLimit: 0.0, upperLimit: mapNode.tileSize.width * 2.5)
             let birdConstraint = SKConstraint.distance(slingRange, to: anchor)  // a circular range
             bird.constraints = [birdConstraint]
+        // TODO: - 添加仅限anchor左侧移动的constraint
     }
     
     // MARK: - Setup Gesture Recognizers
@@ -185,6 +214,7 @@ class GameScene: SKScene {
         guard let birdBody = bird.physicsBody else { return }
         if roundState == .flying && birdBody.isResting {
             gameCamera.setConstraints(with: self, frame: mapNode.frame)
+            bird.flying = false
             bird.removeFromParent()
             roundState = .finished
         }
@@ -205,7 +235,7 @@ extension GameScene: SKPhysicsContactDelegate {
             } else if let block = contact.bodyB.node as? Block {
                 block.impact(with: contact.collisionImpulse)
             }
-            bird.flying = false
+            bird.animateFlight(active: false)
         case PhysicsCategory.block | PhysicsCategory.block:
             if let blockA = contact.bodyA.node as? Block {
                 blockA.impact(with: contact.collisionImpulse)
@@ -214,7 +244,7 @@ extension GameScene: SKPhysicsContactDelegate {
                 blockB.impact(with: contact.collisionImpulse)
             }
         case PhysicsCategory.bird | PhysicsCategory.edge:
-            bird.flying = false
+            bird.animateFlight(active: false)
         default:
             break
         }

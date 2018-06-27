@@ -19,6 +19,9 @@ class Bird: SKSpriteNode {
         didSet {
             if grabbed {
                 animateFlight(active: true)
+                isUserInteractionEnabled = true
+            } else {
+                isUserInteractionEnabled = false
             }
         }
     }
@@ -28,8 +31,7 @@ class Bird: SKSpriteNode {
                 physicsBody?.isDynamic = true
                 constraints?.removeAll()
                 animateFlight(active: true)
-            } else {
-                animateFlight(active: false)
+                isUserInteractionEnabled = false
             }
         }
     }
@@ -38,7 +40,7 @@ class Bird: SKSpriteNode {
     
     init(type: BirdType) {
         birdType = type
-        flyingFrames = AnimationHelper.loadTextures(from: SKTextureAtlas(named: birdType.rawValue), withName: type.rawValue)
+        flyingFrames = AnimationHelper.loadTextures(from: SKTextureAtlas(named: type.rawValue), withName: type.rawValue)
         
         let texture = SKTexture(imageNamed: birdType.rawValue + "1")
         
