@@ -1,11 +1,9 @@
 # Furious-Birds
-A replica iOS game of Angry Birds. Run on iPhone.
-## App Overview
-<kbd>
-  <img src="images/preview.PNG" alt="preview"/>
-</kbd>
-<br>
-A replica iOS game of famous Angry Birds.
+<h1></h1>
+<h6 align="center"> A replica iOS game of famous Angry Birds. </h6>
+
+<h1></h1>
 
 ## See how it works in action
-* [**Furious Birds**](https://youtu.be/JfH2wi5FI1M)
+  
+[![Youtube link](images/preview.PNG)](https://youtu.be/JfH2wi5FI1M)
